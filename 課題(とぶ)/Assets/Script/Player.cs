@@ -1,21 +1,39 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+    [Header("移動・ジャンプ関連")]
     [SerializeField] float Speed = 1.0f;
     [SerializeField] float JumpPower = 5.0f;
-    [SerializeField] float CheckDistance = 0.2f;    //接地判定用の距離(オブジェクトの右端(下)と左端(下)からの)
-    [SerializeField] float WallCheckDistance = 0.05f; //壁判定用の距離(オブジェクトの左右上下の端からの)
-    [SerializeField] Transform CheckBottomLeft;     //左端(下)の座標
-    [SerializeField] Transform CheckBottomRight;    //右端(下)の座標
-    [SerializeField] Transform CheckTopLeft;        //左端(上)の座標
-    [SerializeField] Transform CheckTopRight;       //右端(上)の座標
 
-    private Rigidbody2D rd;
-    private bool LeftWallHit = false;
-    private bool RightWallHit = false;
+    [Header("判定関連")]
+    [SerializeField] float CheckDistance = 0.2f;     //接地判定用の距離(オブジェクトの右端(下)と左端(下)からの)
+    [SerializeField] float WallCheckDistance = 0.05f;//壁判定用の距離(オブジェクトの左右上下の端からの)
+
+    [Header("レイキャスト関連")]
+    [SerializeField] Transform CheckBottomLeft;      //左端(下)の座標
+    [SerializeField] Transform CheckBottomRight;     //右端(下)の座標
+    [SerializeField] Transform CheckTopLeft;         //左端(上)の座標
+    [SerializeField] Transform CheckTopRight;        //右端(上)の座標
+
+    [Header("アニメーション関連")]
+    [SerializeField] float ScaleSpeed = 0.1f;                   //大きさ変化の速さ
+    [SerializeField] float BreathingAmplitude = 0.05f;          //呼吸の振幅
+    [SerializeField] float BreathingFrequency = 2.0f;           //呼吸の速さ
+    private float PrevVelocityY = 0f;                           //前フレームのY方向の速度
+    private bool isHighestPoint = false;                        //ジャンプの最高点に到達したかどうか
+    private Vector3 NormalScale = new Vector3(0.3f, 0.4f, 1.0f);//通常時の大きさ
+    private Vector3 JumpScale = new Vector3(0.15f, 0.6f, 1.0f); //ジャンプ時の大きさ 
+
+    
+    private Rigidbody2D rd; 
+    private bool isJamping = false;        //ジャンプ中かどうか
+    private bool LeftWallHit = false;   //左に壁があるかどうか
+    private bool RightWallHit = false;  //右に壁があるかどうか
+    private float MoveX = 0f;
     private void Awake()
     {
         rd = GetComponent<Rigidbody2D>();
@@ -25,6 +43,8 @@ public class Player : MonoBehaviour
     {
         Move();
         Jump();
+        HandleScale();
+        PrevVelocityY = rd.velocity.y;
     }
 
     private void Move()
@@ -33,7 +53,7 @@ public class Player : MonoBehaviour
         CheckWall();    //壁が右にあるか左にあるかを更新
 
         //横移動
-        float MoveX = Input.GetAxisRaw("Horizontal");   //左右
+        MoveX = Input.GetAxisRaw("Horizontal");   //左右
 
         if (!CheckGround())
         {
@@ -73,8 +93,54 @@ public class Player : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space) && CheckGround())
         {
             rd.velocity = new Vector2(rd.velocity.x, JumpPower);
+            isJamping = true;              //ジャンプ中に設定
         }
 
+    }
+
+    private void HandleScale()
+    {
+
+
+        //アニメーション
+        if (!CheckGround()) 
+        {
+            if (!isHighestPoint && rd.velocity.y < 0) isHighestPoint = true; //最高点に到達したかどうかの更新
+
+            //ジャンプ中
+            //ジャンプアニメーション
+            if (isHighestPoint) //最高点に到達した後の下降中
+            {
+                transform.localScale = Vector3.Lerp(transform.localScale, NormalScale, 0.3f);
+            }
+            else
+            {
+                transform.localScale = Vector3.Lerp(transform.localScale, JumpScale, 0.5f);
+            }
+
+
+        }
+        else  //接地中
+        {
+            isJamping = false;         //ジャンプ中フラグをfalseに
+            isHighestPoint = false; //最高点に到達したかどうかのフラグをfalseに
+
+            transform.localScale = Vector3.Lerp(transform.localScale, NormalScale, ScaleSpeed);
+        }
+
+
+        //if (CheckGround() && MoveX == 0)    //接地中かつ停止中
+        //{
+        //    //接地中
+        //    //呼吸アニメーション
+        //    float breathe = BreathingAmplitude * Mathf.Sin(Time.time * BreathingFrequency);
+        //    Vector3 targetScale = new Vector3(NormalScale.x + breathe, NormalScale.y + breathe , NormalScale.z);
+        //    transform.localScale = Vector3.Lerp(transform.localScale, targetScale, ScaleSpeed);
+        //}
+        //else if (CheckGround() && MoveX != 0) //接地中かつ移動中
+        //{
+        //    transform.localScale = Vector3.Lerp(transform.localScale, NormalScale, ScaleSpeed);
+        //}
     }
 
 
