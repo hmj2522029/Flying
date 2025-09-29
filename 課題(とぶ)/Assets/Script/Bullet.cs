@@ -26,4 +26,13 @@ public class Bullet : MonoBehaviour
         rb.velocity = MoveDir * Speed; //ˆÚ“®•ûŒü‚É‘¬“x‚ğ‚©‚¯‚ÄˆÚ“®
     }
 
+    void OnBecameInvisible()
+    {
+        Destroy(gameObject); //‰æ–ÊŠO‚Éo‚½‚çÁ‚·
+    }
+
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        Destroy(gameObject); //‰½‚©‚É“–‚½‚Á‚½‚çÁ‚·
+    }
 }

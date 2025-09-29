@@ -6,7 +6,6 @@ public class BulletSpawn : MonoBehaviour
 {
 
     [SerializeField] GameObject BulletPredab; //弾のプレハブ
-    [SerializeField] Rigidbody2D rb;          //弾のRigidbody2D
 
     private void OnEnable() //オブジェクトが有効になったときに呼ばれる
     {
