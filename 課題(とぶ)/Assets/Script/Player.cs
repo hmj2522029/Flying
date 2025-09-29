@@ -28,12 +28,17 @@ public class Player : MonoBehaviour
     private Vector3 NormalScale = new Vector3(0.3f, 0.4f, 1.0f);//通常時の大きさ
     private Vector3 JumpScale = new Vector3(0.15f, 0.6f, 1.0f); //ジャンプ時の大きさ 
 
-    
+    [Header("弾関連")]
+    [SerializeField] Transform BulletGenerationPosition; //弾の生成位置
+
+
     private Rigidbody2D rd; 
     private bool isJamping = false;        //ジャンプ中かどうか
     private bool LeftWallHit = false;   //左に壁があるかどうか
     private bool RightWallHit = false;  //右に壁があるかどうか
     private float MoveX = 0f;
+
+    public static event Action<Vector3, Vector3> OnShoot;
     private void Awake()
     {
         rd = GetComponent<Rigidbody2D>();
@@ -42,6 +47,7 @@ public class Player : MonoBehaviour
     void Update()
     {
         Move();
+        PlayerShoot();
         Jump();
         HandleScale();
         PrevVelocityY = rd.velocity.y;
@@ -62,6 +68,8 @@ public class Player : MonoBehaviour
         }
 
         rd.velocity = new Vector2(MoveX * Speed, rd.velocity.y);
+
+
     }
 
     private bool CheckGround()
@@ -128,20 +136,18 @@ public class Player : MonoBehaviour
             transform.localScale = Vector3.Lerp(transform.localScale, NormalScale, ScaleSpeed);
         }
 
-
-        //if (CheckGround() && MoveX == 0)    //接地中かつ停止中
-        //{
-        //    //接地中
-        //    //呼吸アニメーション
-        //    float breathe = BreathingAmplitude * Mathf.Sin(Time.time * BreathingFrequency);
-        //    Vector3 targetScale = new Vector3(NormalScale.x + breathe, NormalScale.y + breathe , NormalScale.z);
-        //    transform.localScale = Vector3.Lerp(transform.localScale, targetScale, ScaleSpeed);
-        //}
-        //else if (CheckGround() && MoveX != 0) //接地中かつ移動中
-        //{
-        //    transform.localScale = Vector3.Lerp(transform.localScale, NormalScale, ScaleSpeed);
-        //}
     }
 
+    private void PlayerShoot()
+    {
+        if(Input.GetMouseButtonDown(0))
+        {
+            Vector3 mousePos = Input.mousePosition; //マウスのスクリーン座標
+            mousePos.z = 10f; //カメラからの距離
 
+            Vector3 worldMousePos = Camera.main.ScreenToWorldPoint(mousePos); //マウスのワールド座標
+            Vector3 direction = (worldMousePos - BulletGenerationPosition.position).normalized; //弾の発射方向を計算して正規化
+            OnShoot?.Invoke(BulletGenerationPosition.position, direction);   //弾の生成位置と発射方向を引数にしてイベントを発火
+        }
+    }
 }
