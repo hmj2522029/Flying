@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,7 +12,7 @@ public class Bullet : MonoBehaviour
     private Player m_player;
     RaycastHit2D WallHit;
 
-
+    public static event Action<Vector2, Vector2> OnBulletHit;
 
     void Start()
     {
@@ -32,25 +33,6 @@ public class Bullet : MonoBehaviour
         rb.velocity = MoveDir * Speed; //移動方向に速度をかけて移動
 
 
-        Ray2D ray = new Ray2D(RayPos.position, m_player.direction);
-        WallHit = Physics2D.Raycast(ray.origin, ray.direction, 0.2f);
-
-        Debug.DrawRay(ray.origin, ray.direction * 0.1f, Color.green, 0.015f);
-
-        if(WallHit.collider)
-        {
-            if (WallHit.collider.gameObject.layer == 3 || //下壁
-                WallHit.collider.gameObject.layer == 6 || //上壁
-                WallHit.collider.gameObject.layer == 7 || //左壁
-                WallHit.collider.gameObject.layer == 8 )  //右壁
-            {
-                Debug.Log("壁のどれかに当たった");
-            }
-
-            //Debug.Log(WallHit.collider.gameObject.layer);
-            //Debug.Log("当たったオブジェクトのレイヤー名: " + LayerMask.LayerToName(collision.gameObject.layer));
-            Debug.DrawRay(WallHit.point, WallHit.normal * 0.2f, Color.green, 0.015f);
-        }
     }
 
     void OnBecameInvisible()
@@ -61,13 +43,14 @@ public class Bullet : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
+        //衝突したときの処理
+        ContactPoint2D contact = collision.contacts[0]; //衝突した点の情報を取得
 
-        Debug.Log(WallHit.collider.gameObject.layer);
-        Debug.Log("当たったオブジェクトのレイヤー名: " + LayerMask.LayerToName(collision.gameObject.layer)); // レイヤー名
+        Vector2 noraml = contact.normal;                //衝突した時の弾の法線ベクトルを取得
+        Vector2 hit = contact.point;                    //衝突した点の座標を取得
 
-        Debug.Log(collision.gameObject);
+        OnBulletHit?.Invoke(hit, noraml);               //弾が何かに当たったときのイベントを発火
 
-        m_player.isBulletCooldownTime = false;
         Destroy(gameObject); //何かに当たったら消す
     }
 
