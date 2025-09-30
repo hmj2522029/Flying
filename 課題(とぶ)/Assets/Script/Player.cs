@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Player : MonoBehaviour
@@ -30,6 +31,8 @@ public class Player : MonoBehaviour
 
     [Header("弾関連")]
     [SerializeField] Transform BulletGenerationPosition; //弾の生成位置
+    public bool isBulletCooldownTime = false;    //弾のクールダウン
+
 
 
     private Rigidbody2D rd; 
@@ -38,6 +41,7 @@ public class Player : MonoBehaviour
     private bool RightWallHit = false;  //右に壁があるかどうか
     private float MoveX = 0f;
 
+    public Vector3 direction;
     public static event Action<Vector3, Vector3> OnShoot;
     private void Awake()
     {
@@ -140,14 +144,18 @@ public class Player : MonoBehaviour
 
     private void PlayerShoot()
     {
-        if(Input.GetMouseButtonDown(0))
+        if(Input.GetMouseButtonDown(0) && !isBulletCooldownTime)
         {
+            isBulletCooldownTime = true;
+
             Vector3 mousePos = Input.mousePosition; //マウスのスクリーン座標
             mousePos.z = 10f; //カメラからの距離
 
             Vector3 worldMousePos = Camera.main.ScreenToWorldPoint(mousePos); //マウスのワールド座標
-            Vector3 direction = (worldMousePos - BulletGenerationPosition.position).normalized; //弾の発射方向を計算して正規化
+            direction = (worldMousePos - BulletGenerationPosition.position).normalized; //弾の発射方向を計算して正規化
             OnShoot?.Invoke(BulletGenerationPosition.position, direction);   //弾の生成位置と発射方向を引数にしてイベントを発火
         }
+
+
     }
 }
