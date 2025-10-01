@@ -44,10 +44,10 @@ public class Bullet : MonoBehaviour
     void OnCollisionEnter2D(Collision2D collision)
     {
         //衝突したときの処理
-        ContactPoint2D contact = collision.contacts[0]; //衝突した点の情報を取得
+        ContactPoint2D contact = collision.contacts[0]; //衝突したオブジェクト点の情報を取得
 
-        Vector2 noraml = contact.normal;                //衝突した時の弾の法線ベクトルを取得
-        Vector2 hit = contact.point;                    //衝突した点の座標を取得
+        Vector2 noraml = contact.normal;                //衝突したオブジェクトから弾に向かう法線ベクトルを取得
+        Vector2 hit = contact.point;                    //衝突したオブジェクト点の座標を取得
 
         OnBulletHit?.Invoke(hit, noraml);               //弾が何かに当たったときのイベントを発火
 

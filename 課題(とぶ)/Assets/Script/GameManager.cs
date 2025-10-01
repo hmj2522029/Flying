@@ -11,8 +11,8 @@ public class GameManager : MonoBehaviour
     private Portal CurrentPortal;
     private GameObject[] Portal = new GameObject[2]; //0:緑 1:紫
     private int PortalIndex = 0;                     //次に出すポータルの色(0:緑 1:紫)
-    private Quaternion rotation = Quaternion.identity;
 
+    private Quaternion rotation = Quaternion.identity;
 
     public static GameManager Instance;
 
