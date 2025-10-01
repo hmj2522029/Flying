@@ -8,6 +8,7 @@ public class GameManager : MonoBehaviour
     [Header("ポータル関連")]
     [SerializeField] GameObject PortalPrefabGreen;
     [SerializeField] GameObject PortalPrefabPurple;
+    private Portal CurrentPortal;
     private GameObject[] Portal = new GameObject[2]; //0:緑 1:紫
     private int PortalIndex = 0;                     //次に出すポータルの色(0:緑 1:紫)
     private Quaternion rotation = Quaternion.identity;
@@ -68,6 +69,7 @@ public class GameManager : MonoBehaviour
             Portal[PortalIndex].GetComponent<Portal>().SetDisappear(true); //消えるアニメーションを再生
         }
 
+
         if (PortalIndex == 0) //緑のポータルを出す
         {
             Portal[PortalIndex] = Instantiate(PortalPrefabGreen, hit, rotation);
@@ -77,6 +79,13 @@ public class GameManager : MonoBehaviour
         {
             Portal[PortalIndex] = Instantiate(PortalPrefabPurple, hit, rotation);
             PortalIndex = 0; //次は緑のポータルを出す
+        }
+
+        //相互リンクの設定
+        if (Portal[0] != null && Portal[1] != null)
+        {
+            Portal[0].GetComponent<Portal>().OppositePortal = Portal[1].GetComponent<Portal>();
+            Portal[1].GetComponent<Portal>().OppositePortal = Portal[0].GetComponent<Portal>();
         }
     }
 

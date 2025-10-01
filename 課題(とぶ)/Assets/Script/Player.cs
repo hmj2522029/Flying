@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class Player : MonoBehaviour
 {
@@ -28,9 +29,15 @@ public class Player : MonoBehaviour
 
     [Header("弾関連")]
     [SerializeField] Transform BulletGenerationPosition; //弾の生成位置
-    public bool isBulletCooldownTime = false;    //弾のクールダウン
+    public bool isBulletCooldownTime = false;            //弾のクールダウン
 
+    [Header("ポータル関連")]
+    public Portal LastPortal;               //プレイヤーが最後に出たポータル
+    public float PortalCooldownTime = 0.5f; //ポータルのクールダウン時間
 
+    [Header("鍵関連")]
+    public bool HasKey = false; //鍵を持っているかどうか
+    public GameObject KeyImage; //UIの鍵アイコン
 
     private Rigidbody2D rd; 
     private bool LeftWallHit = false;   //左に壁があるかどうか
@@ -50,6 +57,7 @@ public class Player : MonoBehaviour
         PlayerShoot();
         Jump();
         HandleScale();
+        PreventRepeatedTeleportation();
     }
 
     private void Move()
@@ -107,7 +115,6 @@ public class Player : MonoBehaviour
     private void HandleScale()
     {
 
-
         //アニメーション
         if (!CheckGround()) 
         {
@@ -149,6 +156,20 @@ public class Player : MonoBehaviour
             OnShoot?.Invoke(BulletGenerationPosition.position, direction);   //弾の生成位置と発射方向を引数にしてイベントを発火
         }
 
+    }
 
+    private void PreventRepeatedTeleportation() //ポータルの連続テレポートを防ぐ
+    {
+        if(PortalCooldownTime > 0)
+        {
+            PortalCooldownTime -= Time.deltaTime;
+
+            if (PortalCooldownTime <= 0)
+            {
+                LastPortal = null;         //最後に出たポータルをリセット
+                PortalCooldownTime = 0.5f; //クールダウン時間をリセット
+
+            }
+        }
     }
 }
