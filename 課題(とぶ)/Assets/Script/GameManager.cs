@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 [DefaultExecutionOrder(-5)] // 他のスクリプトよりも先に実行されるようにする
 public class GameManager : MonoBehaviour
@@ -32,11 +33,32 @@ public class GameManager : MonoBehaviour
     private void OnEnable()
     {
         Bullet.OnBulletHit += SpawnPortal; //PlayerスクリプトのOnShootイベントにCreatePortalメソッドを登録
+
+        //シーンが変わったら呼ばれる
+        SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     private void OnDisable()
     {
         Bullet.OnBulletHit -= SpawnPortal; //PlayerスクリプトのOnShootイベントからCreatePortalメソッドを解除
+
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        //シーンが変わったらポータルをリセット
+        Portal[0] = null;
+        Portal[1] = null;
+        PortalIndex = 0;
+
+        //シーンが変わったらプレイヤーを探す
+        Player player = GameObject.FindWithTag("Player").GetComponent<Player>();
+        if (player != null)
+        {
+            player.LastPortal = null; //プレイヤーの最後に通ったポータルをリセット
+            player.PortalCooldownTime = 0.5f; //ポータルのクールダウン時間をリセット
+        }
     }
 
     void SpawnPortal(Vector2 hit, Vector2 noraml)

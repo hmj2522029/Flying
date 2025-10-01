@@ -5,6 +5,7 @@ using UnityEngine;
 public class KeyHole : MonoBehaviour
 {
     [SerializeField] Transform DoorWithLock;
+    [SerializeField] Key key;
     private GameObject block;
     public static event System.Action<Transform> OnDoorOpen;
 
@@ -23,6 +24,7 @@ public class KeyHole : MonoBehaviour
                 Instantiate(block, transform.position, Quaternion.identity); 
 
                 OnDoorOpen?.Invoke(DoorWithLock); // ドアが開くイベントを発火
+                Destroy(key.gameObject);          // 鍵オブジェクトを破壊
                 Destroy(player.KeyImage);         // 頭上の鍵アイコンを破壊
                 Destroy(gameObject);              // 鍵穴オブジェクトを破壊
             }

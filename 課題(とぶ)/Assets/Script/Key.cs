@@ -44,7 +44,9 @@ public class Key : MonoBehaviour
                 player.KeyImage = Instantiate(gameObject, player.transform.position + offset, Quaternion.identity);
 
                 player.KeyImage.AddComponent<FollowPlayer>().Follow(player.transform, offset);  // プレイヤーの頭上に追従させる
-                Destroy(gameObject);  // 鍵オブジェクトを破壊
+
+                //鍵オブジェクトを非表示
+                gameObject.SetActive(false);
             }
         }
     }
