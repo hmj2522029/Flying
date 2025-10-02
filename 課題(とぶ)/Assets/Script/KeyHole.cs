@@ -6,11 +6,13 @@ public class KeyHole : MonoBehaviour
 {
     [SerializeField] Transform DoorWithLock;
     [SerializeField] Key key;
+    private AudioSource audioSource;
     private GameObject block;
     public static event System.Action<Transform> OnDoorOpen;
 
     private void Start()
     {
+        audioSource = GetComponent<AudioSource>();
         block = Resources.Load<GameObject>("blockRed"); // ResourcesフォルダからBlockプレハブをロード
     }
     private void OnTriggerEnter2D(Collider2D other)

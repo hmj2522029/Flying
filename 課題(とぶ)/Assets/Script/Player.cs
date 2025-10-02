@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
 public class Player : MonoBehaviour
@@ -13,7 +14,7 @@ public class Player : MonoBehaviour
 
     [Header("判定関連")]
     [SerializeField] float CheckDistance = 0.2f;     //接地判定用の距離(オブジェクトの右端(下)と左端(下)からの)
-    [SerializeField] float WallCheckDistance = 0.05f;//壁判定用の距離(オブジェクトの左右上下の端からの)
+    [SerializeField] float WallCheckDistance = 0.2f;//壁判定用の距離(オブジェクトの左右上下の端からの)
 
     [Header("レイキャスト関連")]
     [SerializeField] Transform CheckBottomLeft;      //左端(下)の座標
@@ -39,6 +40,8 @@ public class Player : MonoBehaviour
     public bool HasKey = false; //鍵を持っているかどうか
     public GameObject KeyImage; //UIの鍵アイコン
 
+    
+    private AudioSource audioSources;
     private Rigidbody2D rd; 
     private bool LeftWallHit = false;   //左に壁があるかどうか
     private bool RightWallHit = false;  //右に壁があるかどうか
@@ -48,16 +51,20 @@ public class Player : MonoBehaviour
     public static event Action<Vector3, Vector3> OnShoot;
     private void Awake()
     {
+        audioSources = GetComponent<AudioSource>();
         rd = GetComponent<Rigidbody2D>();
     }
 
     void Update()
     {
-        Move();
-        PlayerShoot();
-        Jump();
-        HandleScale();
-        PreventRepeatedTeleportation();
+        if(!GameManager.Instance.isClear)
+        {
+            Move();
+            PlayerShoot();
+            Jump();
+            HandleScale();
+            PreventRepeatedTeleportation();
+        }
     }
 
     private void Move()
@@ -72,6 +79,7 @@ public class Player : MonoBehaviour
         {
             if (LeftWallHit && MoveX < 0) MoveX = 0;
             if (RightWallHit && MoveX > 0) MoveX = 0;
+
         }
 
         rd.velocity = new Vector2(MoveX * Speed, rd.velocity.y);
@@ -150,7 +158,11 @@ public class Player : MonoBehaviour
 
             Vector3 mousePos = Input.mousePosition; //マウスのスクリーン座標
             mousePos.z = 10f; //カメラからの距離
-
+            if (audioSources.isPlaying)
+            {           
+                audioSources.Stop();
+            }
+            audioSources.Play();
             Vector3 worldMousePos = Camera.main.ScreenToWorldPoint(mousePos); //マウスのワールド座標
             direction = (worldMousePos - BulletGenerationPosition.position).normalized; //弾の発射方向を計算して正規化
             OnShoot?.Invoke(BulletGenerationPosition.position, direction);   //弾の生成位置と発射方向を引数にしてイベントを発火

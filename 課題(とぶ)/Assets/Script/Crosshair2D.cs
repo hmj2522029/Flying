@@ -16,6 +16,14 @@ public class Crosshair2D : MonoBehaviour
     }
     void Update()
     {
+        if (!GameManager.Instance.isClear)
+        {
+             MouseCoordinates();
+        }
+    }
+
+    private void MouseCoordinates()
+    {
         //マウス座標をスクリーン内に制限
         float x = Mathf.Clamp(Input.mousePosition.x, Margin, Screen.width - Margin);
         float y = Mathf.Clamp(Input.mousePosition.y, Margin, Screen.height - Margin);

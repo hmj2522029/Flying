@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -9,7 +10,11 @@ public class GameManager : MonoBehaviour
     [Header("ポータル関連")]
     [SerializeField] GameObject PortalPrefabGreen;
     [SerializeField] GameObject PortalPrefabPurple;
-    private Portal CurrentPortal;
+
+    [SerializeField] FadeUI GameClearUI;       //ゲームクリア時のUI
+    [SerializeField] FadeUI GameSceneTransitionUI;   //シーン遷移を促すためのUI
+
+    public bool isClear = false; 
     private GameObject[] Portal = new GameObject[2]; //0:緑 1:紫
     private int PortalIndex = 0;                     //次に出すポータルの色(0:緑 1:紫)
 
@@ -29,10 +34,17 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
+    private void Update()
+    {
+        SceneTransition();
+    }
+
+
 
     private void OnEnable()
     {
         Bullet.OnBulletHit += SpawnPortal; //PlayerスクリプトのOnShootイベントにCreatePortalメソッドを登録
+        OpenDoor.OnClear += Clear; 
 
         //シーンが変わったら呼ばれる
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -41,9 +53,13 @@ public class GameManager : MonoBehaviour
     private void OnDisable()
     {
         Bullet.OnBulletHit -= SpawnPortal; //PlayerスクリプトのOnShootイベントからCreatePortalメソッドを解除
+        OpenDoor.OnClear -= Clear;
+
 
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
+
+
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
@@ -59,6 +75,19 @@ public class GameManager : MonoBehaviour
             player.LastPortal = null; //プレイヤーの最後に通ったポータルをリセット
             player.PortalCooldownTime = 0.5f; //ポータルのクールダウン時間をリセット
         }
+
+        if (SceneManager.GetActiveScene().name == "TitleScene")
+        {
+            isClear = false;
+        }
+
+        if (SceneManager.GetActiveScene().name == "Game")
+        {
+
+            GameClearUI = GameObject.Find("GameClearUI").GetComponent<FadeUI>();
+            GameSceneTransitionUI = GameObject.Find("GameSceneTransition").GetComponent<FadeUI>();
+        }
+
     }
 
     void SpawnPortal(Vector2 hit, Vector2 noraml)
@@ -108,6 +137,31 @@ public class GameManager : MonoBehaviour
         {
             Portal[0].GetComponent<Portal>().OppositePortal = Portal[1].GetComponent<Portal>();
             Portal[1].GetComponent<Portal>().OppositePortal = Portal[0].GetComponent<Portal>();
+        }
+    }
+
+    private void Clear()
+    {
+        StartCoroutine(Delay());
+    }
+
+    private IEnumerator Delay()
+    {
+        isClear = true;
+        GameClearUI.FadeOut();
+        yield return new WaitForSeconds(2.0f);
+        GameSceneTransitionUI.FadeOut();
+    }
+
+    private void SceneTransition()
+    {
+        if (isClear && Input.GetKey(KeyCode.Space))
+        {
+            SceneManager.LoadScene("TitleScene");
+        }
+        else if (!isClear && Input.GetKey(KeyCode.Space) && SceneManager.GetActiveScene().name == "TitleScene")
+        {
+            SceneManager.LoadScene("Game");
         }
     }
 
